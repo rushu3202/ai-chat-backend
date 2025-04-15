@@ -3,6 +3,7 @@ import OpenAI from "openai";
 import dotenv from "dotenv";
 
 dotenv.config();
+
 const router = express.Router();
 
 const openai = new OpenAI({
@@ -18,13 +19,15 @@ router.post("/", async (req, res) => {
       messages: [{ role: "user", content: message }],
     });
 
-    const aiReply = response.choices[0]?.message?.content || "🤖 No response.";
+    const aiReply = response.choices[0]?.message?.content || "🤖 No reply received.";
     res.json({ reply: aiReply });
-  } catch (err) {
-    console.error("AI Error:", err);
-    res.status(500).json({ reply: "❌ AI error. Try again later." });
+  } catch (error) {
+    console.error("❌ AI Error:", error);
+    res.status(500).json({ reply: "❌ AI failed to respond." });
   }
 });
 
 export default router;
+
+
 

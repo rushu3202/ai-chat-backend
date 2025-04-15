@@ -19,11 +19,11 @@ router.post("/", async (req, res) => {
       messages: [{ role: "user", content: message }],
     });
 
-    const aiReply = response.choices[0]?.message?.content || "🤖 No reply received.";
+    const aiReply = response.choices[0]?.message?.content || "🤖 AI gave no reply.";
     res.json({ reply: aiReply });
-  } catch (error) {
-    console.error("❌ AI Error:", error);
-    res.status(500).json({ reply: "❌ AI failed to respond." });
+  } catch (err) {
+    console.error("❌ AI Error:", err.message);
+    res.status(500).json({ reply: "❌ AI error. Try again later." });
   }
 });
 

@@ -1,41 +1,28 @@
 import express from "express";
-import axios from "axios";
+import OpenAI from "openai";
+import dotenv from "dotenv";
+
+dotenv.config();
 const router = express.Router();
 
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const openai = new OpenAI({
+  apiKey: process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY,
+});
 
 router.post("/", async (req, res) => {
+  const { message } = req.body;
+
   try {
-    const { message } = req.body;
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [{ role: "user", content: message }],
+    });
 
-    const response = await axios.post(
-      "https://openrouter.ai/api/v1/chat/completions",
-      {
-        model: "mistralai/mistral-7b-instruct", // 🔁 You can change model
-        messages: [
-          {
-            role: "system",
-            content: "You are an AI homework helper. Answer simply and helpfully.",
-          },
-          {
-            role: "user",
-            content: message,
-          },
-        ],
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "https://aihomeworkhelper-frontend.onrender.com", // optional
-        },
-      }
-    );
-
-    res.json({ reply: response.data.choices[0].message.content });
+    const aiReply = response.choices[0]?.message?.content || "🤖 No response.";
+    res.json({ reply: aiReply });
   } catch (err) {
-    console.error("❌ OpenRouter error:", err.message);
-    res.status(500).json({ reply: "AI is down. Please try again later." });
+    console.error("AI Error:", err);
+    res.status(500).json({ reply: "❌ AI error. Try again later." });
   }
 });
 

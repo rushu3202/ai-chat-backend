@@ -1,44 +1,66 @@
-import express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
-import OpenAI from "openai";
+// server.js
 
-dotenv.config();
+// Import required modules
+const express = require("express");
+const cors = require("cors");
+const axios = require("axios");
+require("dotenv").config();
 
+// Initialize Express app
 const app = express();
+
+// Enable CORS
 app.use(cors());
+
+// Middleware to parse JSON body
 app.use(express.json());
 
-// 🔐 Use environment variable for your API key
-const openai = new OpenAI({
-  apiKey: process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY,
-});
+// Load the OpenRouter API key from environment variable
+const openRouterKey = process.env.OPENROUTER_API_KEY;
 
-// 💬 Chat route
+// Check if the API key is available
+if (!openRouterKey) {
+  console.error("❌ API Key not found. Please set OPENROUTER_API_KEY.");
+  process.exit(1);
+}
+
+// Set up the /api/chat POST route
 app.post("/api/chat", async (req, res) => {
-  const { message } = req.body;
-
   try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo", // or another model via OpenRouter
-      messages: [{ role: "user", content: message }],
-    });
+    const { prompt } = req.body;
 
-    const aiReply = response.choices[0]?.message?.content || "🤖 No reply.";
-    res.json({ reply: aiReply });
-  } catch (err) {
-    console.error("🔥 AI Error:", err);
-    res.status(500).json({ reply: "❌ AI error. Please try again later." });
+    // Validate prompt
+    if (!prompt) {
+      return res.status(400).json({ error: "Prompt is required." });
+    }
+
+    // Make the API call to OpenRouter
+    const response = await axios.post(
+      "https://api.openrouter.ai/v1/chat", // Update with OpenRouter's correct endpoint
+      {
+        model: "gpt-4", // Replace with the correct model if needed
+        messages: [{ role: "user", content: prompt }],
+      },
+      {
+        headers: {
+          "Authorization": `Bearer ${openRouterKey}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    // Send the response back to the client
+    return res.json({
+      message: response.data.choices[0].message.content,
+    });
+  } catch (error) {
+    console.error("Error generating response:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
-// 🧠 Health check route
-app.get("/", (req, res) => {
-  res.send("✅ AI Homework Helper Backend is running!");
-});
-
-// 🌐 Render port binding
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 Server live at http://localhost:${PORT}`);
+// Set up the server to listen on port 3001 (or the environment port)
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}`);
 });

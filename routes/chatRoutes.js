@@ -6,10 +6,9 @@ dotenv.config();
 
 const router = express.Router();
 
-// ✅ Use OpenRouter endpoint
 const openai = new OpenAI({
-  apiKey: process.env.OPENROUTER_API_KEY,
-  baseURL: "https://openrouter.ai/api/v1",
+  apiKey: process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY,
+  baseURL: "https://openrouter.ai/api/v1", // ✅ if using OpenRouter
 });
 
 router.post("/", async (req, res) => {
@@ -17,11 +16,11 @@ router.post("/", async (req, res) => {
 
   try {
     const response = await openai.chat.completions.create({
-      model: "openchat/openchat-3.5",
+      model: "openchat/openchat-3.5", // or another model you enabled
       messages: [{ role: "user", content: message }],
     });
 
-    const aiReply = response.choices[0]?.message?.content || "🤖 No reply from OpenRouter.";
+    const aiReply = response.choices[0]?.message?.content || "🤖 AI gave no reply.";
     res.json({ reply: aiReply });
   } catch (err) {
     console.error("❌ AI Error:", err.message);
@@ -30,3 +29,4 @@ router.post("/", async (req, res) => {
 });
 
 export default router;
+

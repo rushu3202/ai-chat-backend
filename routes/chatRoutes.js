@@ -7,7 +7,7 @@ dotenv.config();
 const router = express.Router();
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 router.post("/", async (req, res) => {
@@ -28,6 +28,5 @@ router.post("/", async (req, res) => {
 });
 
 export default router;
-
 
 

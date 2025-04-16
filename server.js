@@ -1,32 +1,26 @@
-app.post("/api/chat", async (req, res) => {
-  console.log("Chat route hit"); // Add this log to confirm the route is accessed
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
+import chatRoutes from "./routes/chatRoutes.js";
 
-  try {
-    const { prompt } = req.body;
+dotenv.config();
 
-    if (!prompt) {
-      return res.status(400).json({ error: "Prompt is required." });
-    }
+const app = express();
 
-    const response = await axios.post(
-      "https://api.openrouter.ai/v1/chat",
-      {
-        model: "gpt-4",
-        messages: [{ role: "user", content: prompt }],
-      },
-      {
-        headers: {
-          "Authorization": `Bearer ${openRouterKey}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+// Middleware
+app.use(cors());
+app.use(express.json());
 
-    return res.json({
-      message: response.data.choices[0].message.content,
-    });
-  } catch (error) {
-    console.error("Error generating response:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
-  }
+// Routes
+app.use("/api/chat", chatRoutes);
+
+app.get("/", (req, res) => {
+  res.send("✅ AI Homework Helper Backend is running!");
 });
+
+// Start Server
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`✅ Server is running on port ${PORT}`);
+});
+
